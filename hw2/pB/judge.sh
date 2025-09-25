@@ -20,7 +20,7 @@ fi
 
 
 echo -e "${YELLOW}==========================================${NC}"
-echo -e "${YELLOW}        Homework 2 Test Results         ${NC}"
+echo -e "${YELLOW}        Problem B Test Results         ${NC}"
 echo -e "${YELLOW}==========================================${NC}"
 echo ""
 
