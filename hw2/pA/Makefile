@@ -1,6 +1,6 @@
 CXX = mpic++
 CXXFLAGS = -std=c++17 -O2 -Wall
-TARGET = main
+TARGET = main_mpi
 SOURCE = main.cpp
 
 all: $(TARGET)

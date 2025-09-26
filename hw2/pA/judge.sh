@@ -60,12 +60,12 @@ while IFS= read -r line; do
     SEQ_OUTPUT="seq_output.tmp"
 
     echo -e "${CYAN}Generating test data for range [$min_n, $max_n]...${NC}"
-    
+
     if ! python3 generate_tests.py --min $min_n --max $max_n --output "auto_test_${min_n}_${max_n}.tmp" --seed 42 > /dev/null 2>&1; then
         echo -e "${RED}Error: Failed to generate test data for range [$min_n, $max_n]${NC}"
         continue
     fi
-    
+
     if [ ! -f "$test_file" ]; then
         echo -e "${RED}Error: Test file $test_file was not created${NC}"
         continue
@@ -83,7 +83,7 @@ while IFS= read -r line; do
 
         sync
         sleep 0.5
-        
+
         start_time_mpi=$(date +%s.%N)
         echo "$test_file" | mpirun -np 4 ./main_mpi > "$MPI_OUTPUT" 2>&1
         end_time_mpi=$(date +%s.%N)
@@ -91,7 +91,7 @@ while IFS= read -r line; do
         mpi_times+=($run_time)
         echo -e "${GREEN}${run_time}s${NC}"
     done
-    
+
     mpi_time=$(echo "scale=4; (${mpi_times[0]} + ${mpi_times[1]} + ${mpi_times[2]}) / 3" | bc -l)
 
     echo -e "${CYAN}Running Sequential version (3 runs for accuracy)...${NC}"
@@ -103,10 +103,10 @@ while IFS= read -r line; do
             sleep 0.05
         done
         echo -n " "
-        
+
         sync
         sleep 0.5
-        
+
         start_time_seq=$(date +%s.%N)
         echo "$test_file" | ./main > "$SEQ_OUTPUT" 2>&1
         end_time_seq=$(date +%s.%N)
@@ -114,7 +114,7 @@ while IFS= read -r line; do
         seq_times+=($run_time)
         echo -e "${GREEN}${run_time}s${NC}"
     done
-    
+
     seq_time=$(echo "scale=4; (${seq_times[0]} + ${seq_times[1]} + ${seq_times[2]}) / 3" | bc -l)
 
     if diff -q "$MPI_OUTPUT" "$SEQ_OUTPUT" > /dev/null 2>&1; then
@@ -132,12 +132,12 @@ while IFS= read -r line; do
 
     if [ "$is_correct" = true ] && (( $(echo "$mpi_time > 0" | bc -l) )); then
         speedup=$(echo "scale=4; $seq_time / $mpi_time" | bc -l)
-        
+
         P=4
         k=1.25
-        
+
         efficiency=$(echo "scale=4; $speedup / $P" | bc -l)
-        
+
         raw_score=$(echo "scale=4; $efficiency * 100 * $k" | bc -l)
         score=$(echo "scale=2; if ($raw_score > 100) 100 else $raw_score" | bc -l)
 
@@ -156,7 +156,7 @@ while IFS= read -r line; do
     echo -e "${BLUE}│${NC} ${GREEN}MPI Time:${NC}       ${YELLOW}${mpi_time}s${NC} ${BLUE}│${NC}"
     echo -e "${BLUE}│${NC} ${GREEN}Speedup:${NC}        ${YELLOW}${speedup}x${NC} ${BLUE}│${NC}"
     echo -e "${BLUE}│${NC} ${GREEN}Efficiency:${NC}     ${YELLOW}${efficiency_percent}%${NC} ${BLUE}│${NC}"
-    
+
     if (( $(echo "$score >= 80" | bc -l) )); then
         score_color="${GREEN}"
     elif (( $(echo "$score >= 60" | bc -l) )); then
@@ -164,7 +164,7 @@ while IFS= read -r line; do
     else
         score_color="${RED}"
     fi
-    
+
     echo -e "${BLUE}│${NC} ${GREEN}Score:${NC}          ${score_color}${score}分${NC} ${BLUE}│${NC}"
     echo -e "${BLUE}│${NC} ${GREEN}Result:${NC}         $correctness_status ${BLUE}│${NC}"
     echo -e "${BLUE}└─────────────────────────────────────────────────────────┘${NC}"
@@ -178,7 +178,7 @@ while IFS= read -r line; do
 
 
     rm -f "$test_file" "$MPI_OUTPUT" "$SEQ_OUTPUT"
-    
+
     sleep 1
 
 done < "$test_cases_file"

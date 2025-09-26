@@ -48,12 +48,12 @@ while IFS= read -r line; do
     # Generate test data with animation
     echo -e "${CYAN}Generating test data for n=$n, m=$m...${NC}"
 
-    
+
     if ! python3 generate_tests.py --n $n --m $m --output "auto_test_${n}_${m}.tmp" > /dev/null 2>&1; then
         echo -e "${RED}Error: Failed to generate test data for n=$n, m=$m${NC}"
         continue
     fi
-    
+
 
     if [ ! -f "$test_file" ]; then
         echo -e "${RED}Error: Test file $test_file was not created${NC}"
@@ -73,15 +73,15 @@ while IFS= read -r line; do
 
         sync
         sleep 0.5
-        
+
         start_time_mpi=$(date +%s.%N)
-        echo "$test_file" | mpirun -np 4 ./main > "$MPI_OUTPUT" 2>&1
+        echo "$test_file" | mpirun -np 4 ./main_mpi > "$MPI_OUTPUT" 2>&1
         end_time_mpi=$(date +%s.%N)
         run_time=$(echo "$end_time_mpi - $start_time_mpi" | bc -l)
         mpi_times+=($run_time)
         echo -e "${GREEN}${run_time}s${NC}"
     done
-    
+
     mpi_time=$(echo "scale=4; (${mpi_times[0]} + ${mpi_times[1]} + ${mpi_times[2]}) / 3" | bc -l)
 
     echo -e "${CYAN}Running Sequential version (3 runs for accuracy)...${NC}"
@@ -93,10 +93,10 @@ while IFS= read -r line; do
             sleep 0.05
         done
         echo -n " "
-        
+
         sync
         sleep 0.5
-        
+
         start_time_seq=$(date +%s.%N)
         echo "$test_file" | ./main2 > "$SEQ_OUTPUT" 2>&1
         end_time_seq=$(date +%s.%N)
@@ -104,7 +104,7 @@ while IFS= read -r line; do
         seq_times+=($run_time)
         echo -e "${GREEN}${run_time}s${NC}"
     done
-    
+
     seq_time=$(echo "scale=4; (${seq_times[0]} + ${seq_times[1]} + ${seq_times[2]}) / 3" | bc -l)
 
     if diff -q "$MPI_OUTPUT" "$SEQ_OUTPUT" > /dev/null 2>&1; then
@@ -125,7 +125,7 @@ while IFS= read -r line; do
 
     # Clean up all temporary files for this run
     rm -f "$test_file" "$MPI_OUTPUT" "$SEQ_OUTPUT"
-    
+
     sleep 1
 
 done < "$test_cases_file"
